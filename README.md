@@ -194,4 +194,4 @@ The source deliberately isn't published here: it ships live offensive tradecraft
 
 ## Author
 
-**Ellery Wee** — cybersecurity researcher, white-hat hacker, bug bounty hunter. cybersec-10000 was designed, built, and is actively maintained solo, drawing on offensive security research, multi-platform bug bounty work, and large-scale agentic system design. MIT-licensed.
+**AIagentPRO78** — cybersecurity researcher, white-hat hacker, bug bounty hunter. cybersec-10000 was designed, built, and is actively maintained solo, drawing on offensive security research, multi-platform bug bounty work, and large-scale agentic system design. MIT-licensed.
