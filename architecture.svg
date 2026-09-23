@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 640" role="img" aria-label="Diagram: four entry commands feed a chain-planner orchestration layer, which fans out to three agent tiers. A Ext decisioning gate sits only on the path to the live-operations tier, which in turn drives the attack box.">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <g style="color:#55606c" stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="275" y1="60" x2="275" y2="98" marker-end="url(#arrow)"/>
+          <line x1="475" y1="60" x2="475" y2="98" marker-end="url(#arrow)"/>
+          <line x1="655" y1="60" x2="655" y2="98" marker-end="url(#arrow)"/>
+          <line x1="830" y1="60" x2="830" y2="98" marker-end="url(#arrow)"/>
+        </g>
+
+        <!-- entry commands -->
+        <g font-family="IBM Plex Mono, monospace" font-size="13" font-weight="500">
+          <rect x="180" y="24" width="190" height="36" rx="18" fill="none" stroke="#12181f" stroke-width="1.5"/>
+          <text x="275" y="47" text-anchor="middle" fill="#12181f">/cybersec-scan</text>
+
+          <rect x="400" y="24" width="150" height="36" rx="18" fill="none" stroke="#12181f" stroke-width="1.5"/>
+          <text x="475" y="47" text-anchor="middle" fill="#12181f">/chain-plan</text>
+
+          <rect x="580" y="24" width="150" height="36" rx="18" fill="none" stroke="#12181f" stroke-width="1.5"/>
+          <text x="655" y="47" text-anchor="middle" fill="#12181f">/chain-run</text>
+
+          <rect x="760" y="24" width="140" height="36" rx="18" fill="none" stroke="#12181f" stroke-width="1.5"/>
+          <text x="830" y="47" text-anchor="middle" fill="#12181f">/war-room</text>
+        </g>
+
+        <!-- orchestration -->
+        <rect x="80" y="100" width="920" height="70" rx="10" fill="#e3e7ec" stroke="#12181f" stroke-width="1.5"/>
+        <text x="540" y="130" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="16" fill="#12181f">chain-planner orchestration</text>
+        <text x="540" y="151" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#55606c">46 chains · 133 capabilities · score = payout_prior × applicability × freshness_decay</text>
+
+        <!-- distribution arrows -->
+        <g style="color:#55606c" stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="190" y1="170" x2="190" y2="278" marker-end="url(#arrow)"/>
+          <line x1="540" y1="170" x2="540" y2="176" marker-end="url(#arrow)"/>
+          <line x1="540" y1="270" x2="540" y2="278" marker-end="url(#arrow)"/>
+          <line x1="890" y1="170" x2="890" y2="278" marker-end="url(#arrow)"/>
+        </g>
+
+        <!-- Ext gate box (live path only) -->
+        <rect x="370" y="178" width="340" height="92" rx="8" fill="none" stroke="#5b4b8a" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="540" y="197" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="12.5" fill="#5b4b8a">EXT DECISIONING GATE — LIVE PATH ONLY</text>
+        <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#55606c" text-anchor="middle">
+          <text x="540" y="213">step-evidence veto · semantic pivot select</text>
+          <text x="540" y="227">concurrency allocator 8→34→125→1000</text>
+          <text x="540" y="241">PoC-reproduction verify</text>
+          <text x="540" y="258" font-style="italic">fails open to deterministic behavior without EXT_SERVICE_API_KEY</text>
+        </g>
+
+        <!-- tier boxes -->
+        <g>
+          <!-- static -->
+          <rect x="40" y="280" width="300" height="260" rx="10" fill="#ffffff" stroke="#b5731c" stroke-width="1.5"/>
+          <text x="56" y="306" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="14" fill="#b5731c">STATIC ANALYSIS</text>
+          <text x="56" y="323" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#55606c">20 agents · 5,076 dims</text>
+          <line x1="56" y1="332" x2="324" y2="332" stroke="#c7ced6"/>
+          <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#12181f">
+            <text x="56" y="354">auth-session</text>
+            <text x="56" y="384">injection-execution</text>
+            <text x="56" y="414">crypto-data-protection</text>
+            <text x="56" y="444">supply-chain-deps</text>
+            <text x="56" y="474">network-perimeter</text>
+          </g>
+          <text x="56" y="504" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#55606c">+15 more</text>
+
+          <!-- live ops -->
+          <rect x="390" y="280" width="300" height="260" rx="10" fill="#ffffff" stroke="#0f7d8c" stroke-width="1.5"/>
+          <text x="406" y="306" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="14" fill="#0f7d8c">LIVE OPERATIONS</text>
+          <text x="406" y="323" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#55606c">16 agents · 3,087 dims</text>
+          <line x1="406" y1="332" x2="674" y2="332" stroke="#c7ced6"/>
+          <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#12181f">
+            <text x="406" y="354">recon-live</text>
+            <text x="406" y="384">exploit-web / exploit-cloud</text>
+            <text x="406" y="414">c2-ops · persist · exfil</text>
+            <text x="406" y="444">opsec · blue-team-watchdog</text>
+            <text x="406" y="474">evasion-proxy</text>
+          </g>
+          <text x="406" y="504" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#55606c">+11 more</text>
+
+          <!-- specialist -->
+          <rect x="740" y="280" width="300" height="260" rx="10" fill="#ffffff" stroke="#a13d63" stroke-width="1.5"/>
+          <text x="756" y="306" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="14" fill="#a13d63">SPECIALIST</text>
+          <text x="756" y="323" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#55606c">4 agents · 2,000 dims</text>
+          <line x1="756" y1="332" x2="1024" y2="332" stroke="#c7ced6"/>
+          <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#12181f">
+            <text x="756" y="354">deception-honeypot</text>
+            <text x="756" y="384">threat-intelligence</text>
+            <text x="756" y="414">iot-embedded</text>
+            <text x="756" y="444">vuln-research</text>
+          </g>
+        </g>
+
+        <!-- to attack box -->
+        <g style="color:#0f7d8c" stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="540" y1="540" x2="540" y2="558" marker-end="url(#arrow)"/>
+        </g>
+        <rect x="340" y="560" width="400" height="60" rx="8" fill="none" stroke="#0f7d8c" stroke-width="1.5"/>
+        <text x="540" y="583" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="13" fill="#0f7d8c">ATTACK BOX</text>
+        <text x="540" y="600" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#55606c">Vultr VPS · WireGuard tunnel · Docker (Mythic C2)</text>
+      </svg>
