@@ -1,6 +1,6 @@
 # cybersec-10000 — a 40-agent security analysis swarm
 
-A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,163 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner. Currently at **v1.5.1**, actively maintained.
+A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,163 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner. Currently at **v1.5.2**, actively maintained.
 
 > **This repo is a public showcase, not the source.** The plugin source is private and shared on request — contact me on GitHub: [@AIagentPRO78](https://github.com/AIagentPRO78). See [Requesting access](#requesting-access).
 
@@ -8,7 +8,7 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 | | |
 |---|---|
-| Version | v1.5.1 — shipped to `main` (merged, not a feature branch) |
+| Version | v1.5.2 — shipped to `main` (merged, not a feature branch) |
 | Agents | 40 — 20 static analysis · 16 live operations · 4 specialist |
 | Dimensions | ~10,163 — 5,076 static · 3,087 live · 2,000 specialist |
 | Exploit chains | 46 named chains across 9 categories |
