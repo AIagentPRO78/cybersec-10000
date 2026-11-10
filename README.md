@@ -1,6 +1,6 @@
 # cybersec-10000 — a 40-agent security analysis swarm
 
-A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,163 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner with a judgment layer on the live-operations path. Currently at **v1.4.2**, actively maintained.
+A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,163 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner. Currently at **v1.5.0**, actively maintained.
 
 > **This repo is a public showcase, not the source.** The plugin source is private and shared on request — contact me on GitHub: [@AIagentPRO78](https://github.com/AIagentPRO78). See [Requesting access](#requesting-access).
 
@@ -8,13 +8,13 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 | | |
 |---|---|
-| Version | v1.4.2 — shipped to `main` (merged, not a feature branch) |
+| Version | v1.5.0 — shipped to `main` (merged, not a feature branch) |
 | Agents | 40 — 20 static analysis · 16 live operations · 4 specialist |
 | Dimensions | ~10,163 — 5,076 static · 3,087 live · 2,000 specialist |
 | Exploit chains | 46 named chains across 9 categories |
 | Capabilities | 133 reusable capability tags |
 | Frameworks mapped | 40+ (OWASP, MITRE ATT&CK/ATLAS, NIST, PCI DSS 4.0, ISO 27001:2022, CIS, …) |
-| Tests | 502 passed (`pytest`, chain-planner) |
+| Tests | 444 passed (`pytest`, chain-planner) |
 | License | MIT — source shared on request |
 
 ---
@@ -111,41 +111,22 @@ Chains are reusable multi-step exploit recipes stored as Markdown + YAML frontma
 | Category | Examples |
 |---|---|
 | ai | langchain-agent-to-rce, soc-copilot-prompt-injection |
-| api | GraphQL introspection→IDOR, gRPC reflection abuse, REST mass-assignment chains |
-| auth | OAuth implicit/PKCE downgrades, SAML XSW, JWT alg-none, EIP-7702 delegation hijack |
-| cloud | IMDSv2 SSRF bypass, ADCS ESC escalation, GuardDuty noise-floor blending |
-| crypto | Signature malleability, weak nonces, low-S, deterministic-k reuse |
-| defi | Reentrancy, sandwich, price-oracle manipulation, governance flash-loan |
-| evasion | Defender XDR ASR-AMSI bypass, Sentinel KQL blindspot mapping, JA4 rotation |
-| ml | Huggingface model trojan, Bedrock agent action-group injection |
-| web | CORS wildcard credentialed ATO, SSRF metadata→lateral, subdomain takeover, prototype pollution |
+| api | graphql-idor-via-aliases, mass-assignment-privesc, batch-idor, rate-limit-bypass-to-enum |
+| auth | oauth-open-redirect-token-theft, saml-assertion-replay, mfa-bypass-via-recovery, adcs-esc-escalation |
+| cloud | imdsv2-ssrf-bypass-2026, guardduty-noise-floor-blending, bedrock-agent-action-group-injection, s3-bucket-takeover |
+| crypto | ecdsa-nonce-reuse, padding-oracle-to-session, weak-jwt-secret-brute, hash-length-extension |
+| defi | eip-7702-delegation-hijack |
+| evasion | defender-xdr-asr-amsi-bypass-2026, sentinel-kql-blindspot-mapping, ja4-rotation-active-probe |
+| ml | huggingface-model-trojan |
+| web | cors-wildcard-credentialed-ato, ssrf-to-iam-takeover, subdomain-takeover-to-cookie-scope, prototype-pollution-rce |
 
-133 capability tags (e.g. `cors-misconfig-detect`, `ssrf-probe`, `dep-confusion-scan`) are declared in agent frontmatter and reused inside chain steps, so a chain fires only the dimensions it actually needs instead of running a full agent. Scoring: `score = payout_prior_usd × applicability × freshness_decay`, where applicability matches a chain's declared target tech/misconfig hints against the current target and freshness_decay down-weights chains whose underlying primitive is likely patched at scale.
+133 capability tags (e.g. `cors-wildcard-credentialed`, `ssrf-basic-detection`, `supply-chain-dep-confusion`) are declared in agent frontmatter and reused inside chain steps, so a chain fires only the dimensions it actually needs instead of running a full agent. Scoring: `score = payout_prior_usd × applicability × freshness_decay`, where applicability matches a chain's declared target tech/misconfig hints against the current target and freshness_decay down-weights chains that have not produced a paid finding recently.
 
-Workflow: **plan** (`/chain-plan <target> --tech … --top 5` → ranked plan file) → **run** (`/chain-run <chain-id>`, manual go/no-go gate per step, evidence logged) → **promote** (`/chain-promote <chain-id>`, a proven chain rejoins the library) → **sync** (`/chain-sync`, lints the library, idempotent).
-
----
-
-## 3. external decisioning
-
-The newest piece, and the one I think is the most interesting design decision: a judgment layer wired into the live-operations path only, not the static-analysis path. Four integration points, each a *bounded* judgment (yes/no, pick-one-of-N, graded score) rather than open-ended generation:
-
-| Decision point | Before | With Ext |
-|---|---|---|
-| Step success (`chain-run` step-evidence veto) | The agent executing a step graded its own work — no independent check. | An independent call judges whether the evidence actually supports "success," and can veto a step before a false success propagates into the next pivot. |
-| Pivot selection (`chain-run` semantic pivot) | Pure arithmetic (`payout_prior × applicability × freshness_decay`), blind to what the evidence said. | Reads the accumulated evidence and picks the capability semantically closest to what was just found — something the formula structurally can't do. Always requires manual confirmation before auto-launch. |
-| Concurrency priority (`war-room`) | Fixed 8-agent cap, ordered only by static payout priors. | A batched call re-ranks the top-k shortlist by situational relevance before each dispatch wave. |
-| Promotion crediting (`chain-promote`) | A payout claim was accepted on trust; priors updated unconditionally. | A pre-check verifies the reproduction-evidence actually supports the claimed success before the historical-payout data updates — stops a bad promotion from polluting future rankings. |
-
-**Why Ext and not another full model call:** every one of the four is bounded, never generative, so it's materially cheaper and faster at the concurrency this plugin targets (a staged allocator scaling 8→34→125→1000 concurrent agents, chunked at 200 candidates/request to stay under the token cap a batch call implies). Reflexes belong on the fast decision path; generation and tool use belong to the subagents actually running the chains.
-
-**Fail-open by design.** If the API key is absent, or a call errors, times out, or comes back malformed/low-confidence, every integration point defers to the exact pre-Ext deterministic behavior, with a distinct logged reason (`deferred:no_api_key`, `deferred:no_response`, `deferred:malformed_response`, `deferred:low_confidence`). Adding this layer can't make a run less reliable than it was before — worst case it's a no-op.
-
-**Honestly-documented gap:** `war-room`'s parallel dispatch calls agents directly rather than through `/chain-run`, so the per-step veto/pivot calls don't apply to chains launched that way yet — only the pre-dispatch shortlist re-rank does. I'd rather ship that caveat in writing than overclaim coverage.
+Workflow: **plan** (`/chain-plan <target> --tech … --top 5` → ranked plan file) → **run** (`/chain-run <chain-id>`, manual go/no-go gate per step, evidence logged) → **promote** (`/chain-promote`, records a paid finding so that chain ranks higher in future plans) → **sync** (`/chain-sync`, lints the library, idempotent).
 
 ---
 
-## 4. Attack-box tooling
+## 3. Attack-box tooling
 
 Live-ops agents never touch the network from the operator's machine — every active call goes through a dedicated VPS (Ubuntu 24.04, LXD-containerized by role: recon / web / net / cloud / c2) reached over WireGuard. The install guide documents the full tool inventory with install paths, e.g.:
 
@@ -159,36 +140,36 @@ A 10-minute watchdog cron on the operator's machine auto-snapshots the VPS on a 
 
 ---
 
-## 5. Engineering verification
+## 4. Engineering verification
 
 Not just a design doc — verified end-to-end before publishing this showcase:
 
-- **Tests:** `pytest` against the chain-planner's Python package — **502 passed**.
-- **Install, tested end-to-end:** packaged the plugin into a self-installing bundle, added it as a local marketplace in an isolated Claude Code config directory, ran `marketplace add` → `install` → `validate`. All succeeded; the installed plugin reports 40 agents / 9 skills, matching what's documented.
+- **Tests:** `pytest` against the chain-planner's Python package — **444 passed**.
+- **Install, tested end-to-end:** packaged the plugin into a self-installing bundle, added it as a local marketplace in an isolated Claude Code config directory, ran `marketplace add` → `install` → `validate`. All succeeded; the installed plugin reports 40 agents, matching what's documented.
 - **Cross-platform audit:** every shipped shell script checked for macOS/Linux portability traps (BSD vs GNU `sed`/`date`/`stat`, bash-4-only syntax, Keychain-only secret storage). Found and fixed one real gap — a couple of docs hardcoded a `brew install`-only path for `pandoc`/`typst`; both now also list the Linux install path.
 - **Security review, two independent passes:** pattern-based secret/credential scanning (AWS/OpenAI/GitHub/Slack/PEM key patterns), full-text extraction of all 7 reference PDFs (not just skimmed), real-vs-placeholder IP/target/company-name audit, and a packaging-hygiene check (no `.git`, `.venv`, `__pycache__`, or `.DS_Store` in the shipped bundle). Verdict: safe to share externally.
 
 ---
 
-## 6. Safety & authorization posture
+## 5. Safety & authorization posture
 
 The static-analysis half only reads code and is safe to run anywhere. The live-ops half can do real damage and is gated accordingly: `INSTALL.md`, `README.md`, and the `/war-room`/`/cybersec-scan` command docs all carry explicit, mandatory in-session authorization-gate language before any active-exploitation phase — authorization is never inferred from a flag being present, it has to be stated. `/war-room` specifically runs the full kill chain (including lateral movement, persistence, and exfil), which many engagement rules of engagement explicitly prohibit, so the docs call that out by name rather than leaving it implicit.
 
 ---
 
-## 7. What's in the source (private, on request)
+## 6. What's shared on request
 
-Everything below sits in the private repo, sanitized (no secrets, no real infra hostnames/IPs — everything live-mode is a placeholder):
+The sanitized build (no secrets, no real infra hostnames/IPs — everything live-mode is a placeholder) contains the plugin source from the private repo, plus an install guide and reference PDFs that are packaged with the build rather than kept in the source repo:
 
 - Full plugin source: 40 agent definitions, 8 slash commands, 46 exploit chains, the chain-planner scoring/dispatch skill, VPS attack-box management scripts.
-- `INSTALL.md` — the tested install flow described in section 5.
-- `docs/` — 7 PDF references: an educational guide, a full per-agent dimension catalog (344 pages, generated by parsing the source so the counts can't silently drift from the code), a dimensions-and-execution code reference, the VPS attack-box setup guide (section 4 above, in full), a `/war-room` competition-orchestration guide, a related-project guide (125-agent-cube), and a README.
+- `INSTALL.md` — the tested install flow described in section 4.
+- `docs/` — 7 PDF references: an educational guide, a full per-agent dimension catalog (344 pages, generated by parsing the source so the counts can't silently drift from the code), a dimensions-and-execution code reference, the VPS attack-box setup guide (section 3 above, in full), a `/war-room` competition-orchestration guide, a related-project guide (125-agent-cube), and a README.
 
 ---
 
 ## Requesting access
 
-The source deliberately isn't published here: it ships live offensive tradecraft, so I share it directly with people I talk to rather than leaving an unattended install link. Contact me on GitHub — [@AIagentPRO78](https://github.com/AIagentPRO78) — tell me who you are and what you'd use it for, and I'll share a sanitized build. Happy to walk through any part of the architecture, any specific agent, or the Ext integration in more depth.
+The source deliberately isn't published here: it ships live offensive tradecraft, so I share it directly with people I talk to rather than leaving an unattended install link. Contact me on GitHub — [@AIagentPRO78](https://github.com/AIagentPRO78) — tell me who you are and what you'd use it for, and I'll share a sanitized build. Happy to walk through any part of the architecture or any specific agent, in more depth.
 
 ---
 
