@@ -1,6 +1,6 @@
 # cybersec-10000 — a 40-agent security analysis swarm
 
-A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,163 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner. Currently at **v1.5.0**, actively maintained.
+A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,163 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner. Currently at **v1.5.1**, actively maintained.
 
 > **This repo is a public showcase, not the source.** The plugin source is private and shared on request — contact me on GitHub: [@AIagentPRO78](https://github.com/AIagentPRO78). See [Requesting access](#requesting-access).
 
@@ -8,7 +8,7 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 | | |
 |---|---|
-| Version | v1.5.0 — shipped to `main` (merged, not a feature branch) |
+| Version | v1.5.1 — shipped to `main` (merged, not a feature branch) |
 | Agents | 40 — 20 static analysis · 16 live operations · 4 specialist |
 | Dimensions | ~10,163 — 5,076 static · 3,087 live · 2,000 specialist |
 | Exploit chains | 46 named chains across 9 categories |
@@ -145,7 +145,7 @@ A 10-minute watchdog cron on the operator's machine auto-snapshots the VPS on a 
 Not just a design doc — verified end-to-end before publishing this showcase:
 
 - **Tests:** `pytest` against the chain-planner's Python package — **444 passed**.
-- **Install, tested end-to-end:** packaged the plugin into a self-installing bundle, added it as a local marketplace in an isolated Claude Code config directory, ran `marketplace add` → `install` → `validate`. All succeeded; the installed plugin reports 40 agents, matching what's documented.
+- **Install, tested end-to-end:** packaged the plugin into a self-installing bundle, added it as a local marketplace in an isolated Claude Code config directory, ran `marketplace add` → `install` → `validate`. All succeeded; the installed plugin reports 40 agents and 9 skills/commands (the 8 slash commands plus the chain-planner skill), matching what's documented.
 - **Cross-platform audit:** every shipped shell script checked for macOS/Linux portability traps (BSD vs GNU `sed`/`date`/`stat`, bash-4-only syntax, Keychain-only secret storage). Found and fixed one real gap — a couple of docs hardcoded a `brew install`-only path for `pandoc`/`typst`; both now also list the Linux install path.
 - **Security review, two independent passes:** pattern-based secret/credential scanning (AWS/OpenAI/GitHub/Slack/PEM key patterns), full-text extraction of all 7 reference PDFs (not just skimmed), real-vs-placeholder IP/target/company-name audit, and a packaging-hygiene check (no `.git`, `.venv`, `__pycache__`, or `.DS_Store` in the shipped bundle). Verdict: safe to share externally.
 
