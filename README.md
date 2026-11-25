@@ -1,6 +1,6 @@
 # cybersec-10000 — a 40-agent security analysis swarm
 
-A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,163 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner. Currently at **v1.5.1**, actively maintained.
+A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,243 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner written in Rust. Currently at **v2.0.0**, actively maintained. v2.0 adds a purple-team output (attack → countermeasure → detection), EPSS/KEV-aware scoring, a fail-closed containment model, and re-pins every framework to the 2025–26 editions.
 
 > **This repo is a public showcase, not the source.** The plugin source is private and shared on request — contact me on GitHub: [@AIagentPRO78](https://github.com/AIagentPRO78). See [Requesting access](#requesting-access).
 
@@ -8,13 +8,13 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 | | |
 |---|---|
-| Version | v1.5.1 — shipped to `main` (merged, not a feature branch) |
+| Version | v2.0.0 |
 | Agents | 40 — 20 static analysis · 16 live operations · 4 specialist |
-| Dimensions | ~10,163 — 5,076 static · 3,087 live · 2,000 specialist |
+| Dimensions | ~10,243 — 5,156 static · 3,087 live · 2,000 specialist |
 | Exploit chains | 46 named chains across 9 categories |
 | Capabilities | 133 reusable capability tags |
-| Frameworks mapped | 40+ (OWASP, MITRE ATT&CK/ATLAS, NIST, PCI DSS 4.0, ISO 27001:2022, CIS, …) |
-| Tests | 444 passed (`pytest`, chain-planner) |
+| Frameworks mapped | 50+, pinned to verified 2025–26 editions (OWASP Top 10:2025 + Agentic/MCP/LLM, ATT&CK v20, ATLAS v2026.10, D3FEND 1.6.0, …) |
+| Tests | 170 passed (`cargo test`, Rust chain-planner) · differential test vs the v1.5.2 Python engine: identical output |
 | License | MIT — source shared on request |
 
 ---
@@ -23,7 +23,7 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 ![cybersec-10000 architecture](architecture.svg)
 
-Four slash commands (`/cybersec-scan`, `/chain-plan`, `/chain-run`, `/war-room`) feed a `chain-planner` orchestration layer that scores 46 pre-built exploit chains against a target (`payout_prior × applicability × freshness_decay`) and fans out to three agent tiers. Static-analysis agents are read-only and safe to run anywhere; live-operations agents execute exclusively against a dedicated attack box (a Vultr VPS reached over WireGuard), never from the operator's own machine.
+Four slash commands (`/cybersec-scan`, `/chain-plan`, `/chain-run`, `/war-room`) feed a Rust `chain-planner` that scores 46 pre-built exploit chains against a target (`payout_prior × applicability × freshness_decay × exploitability`) and fans out to three agent tiers. Static-analysis agents are read-only and safe to run anywhere. Live-operations and specialist agents pass a fail-closed scope gate before every action and run only on a dedicated attack box (a Vultr VPS reached over WireGuard) whose outbound traffic is default-deny, never from the operator's own machine. Every finding, static or live, carries a purple-team mapping so a defender can act on it.
 
 ### 1.1 Static analysis — 20 agents, 5,076 dimensions
 
@@ -86,21 +86,23 @@ Adapted from an earlier "AttackBox War Room" project, expanded. Agent 39 (`blue-
 
 ### 1.4 Frameworks covered
 
-Every dimension maps to a recognized framework so findings are auditable and report-ready rather than free-form:
+Every dimension maps to a recognized framework, so findings are auditable and report-ready rather than free-form. In v2.0 every version was re-checked against its publisher. The plugin ships a framework canon that lists the verified IDs, and agents may cite only those or IDs confirmed at the pinned version. All 575 ATT&CK, ATLAS and D3FEND IDs the v2.0 agents cite were machine-checked against MITRE's official data (ATT&CK v20.1, ATLAS v2026.10, D3FEND 1.6.0).
 
 | Category | Frameworks |
 |---|---|
-| OWASP | Top 10 2021, API Top 10 2023, LLM Top 10 2025, Mobile Top 10 2024 |
-| MITRE | ATT&CK Enterprise v15, ATT&CK Mobile v15, ATT&CK ICS v15, ATLAS v2, D3FEND v1 |
-| CWE / CAPEC | CWE Top 25 2024, CAPEC 3.9, SANS Top 25 |
-| NIST | CSF 2.0, SP 800-53 Rev 5, AI 100-2, Privacy Framework 1.0, SP 800-177 (email), SP 800-41 (network) |
-| Threat modeling | STRIDE, DREAD, PASTA, LINDDUN, TIARA |
-| Compliance | PCI DSS 4.0, ISO 27001:2022, ISO 22301:2019, ISO 27701:2019, HIPAA, SOC 2, GDPR/CCPA/CPRA |
+| OWASP | Top 10:2025, API Security Top 10:2023, Mobile Top 10 2024, Top 10 for LLM Applications 2026, **Top 10 for Agentic Applications 2026**, **MCP Top 10 2025 (beta)** |
+| MITRE | ATT&CK Enterprise v20 (incl. the new AI techniques: direct/indirect prompt injection, AI-enabled exfiltration, AI result poisoning), ATLAS v2026.10, D3FEND 1.6.0, CAPEC 3.9, CTID Secure AI v2 |
+| CWE | CWE Top 25 2025, SANS Top 25 |
+| AI security & governance | **CSA MAESTRO 1.0**, CSA AI Controls Matrix v1.1, CSA Agentic AI Red Teaming Guide 1.0, Google SAIF, Databricks DASF 3.0, NIST AI 600-1, NIST AI 100-2 E2025, NIST COSIS (pre-draft), ISO/IEC 27090:2026, EU AI Act (as amended 2026), EN 18286:2026 |
+| Prioritization | EPSS v5, CISA KEV, CVSS v4.0, CISA SSVC |
+| NIST | CSF 2.0, SP 800-53 Rev 5, Privacy Framework 1.0, SP 800-177 (email), SP 800-41 (network) |
+| Threat modeling | STRIDE, DREAD, PASTA, LINDDUN, TIARA, MAESTRO |
+| Compliance | PCI DSS v4.0.1, ISO 27001:2022, ISO 22301:2019, ISO 27701:2019, HIPAA, SOC 2, GDPR/CCPA/CPRA |
 | Cloud | CSA CCM v4, CIS Benchmarks v8 |
-| Supply chain | SLSA v1.0, S2C2F |
+| Supply chain | SLSA v1.2, S2C2F |
 | Crypto / hardware | FIPS 140-3 |
 | Methodology | OSSTMM 3, PTES, RE&CT |
-| OT / IoT | IEC 62443, ETSI EN 303 645 |
+| OT / IoT | ATT&CK ICS v20, IEC 62443, ETSI EN 303 645 |
 
 ---
 
@@ -120,7 +122,7 @@ Chains are reusable multi-step exploit recipes stored as Markdown + YAML frontma
 | ml | huggingface-model-trojan |
 | web | cors-wildcard-credentialed-ato, ssrf-to-iam-takeover, subdomain-takeover-to-cookie-scope, prototype-pollution-rce |
 
-133 capability tags (e.g. `cors-wildcard-credentialed`, `ssrf-basic-detection`, `supply-chain-dep-confusion`) are declared in agent frontmatter and reused inside chain steps, so a chain fires only the dimensions it actually needs instead of running a full agent. Scoring: `score = payout_prior_usd × applicability × freshness_decay`, where applicability matches a chain's declared target tech/misconfig hints against the current target and freshness_decay down-weights chains that have not produced a paid finding recently.
+133 capability tags (e.g. `cors-wildcard-credentialed`, `ssrf-basic-detection`, `supply-chain-dep-confusion`) are declared in agent frontmatter and reused inside chain steps, so a chain fires only the dimensions it actually needs instead of running a full agent. Scoring: `score = payout_prior_usd × applicability × freshness_decay × exploitability`. Applicability matches a chain's declared target tech and misconfig hints against the current target. Freshness_decay down-weights chains that haven't produced a paid finding recently. Exploitability (new in v2.0) is neutral (1.0) unless you supply CVE intel: then it is 1.5 for a CISA KEV-listed CVE, or `0.5 + EPSS` otherwise, so chains built on bugs being exploited in the wild rise to the top.
 
 Workflow: **plan** (`/chain-plan <target> --tech … --top 5` → ranked plan file) → **run** (`/chain-run <chain-id>`, manual go/no-go gate per step, evidence logged) → **promote** (`/chain-promote`, records a paid finding so that chain ranks higher in future plans) → **sync** (`/chain-sync`, lints the library, idempotent).
 
@@ -144,16 +146,27 @@ A 10-minute watchdog cron on the operator's machine auto-snapshots the VPS on a 
 
 Not just a design doc — verified end-to-end before publishing this showcase:
 
-- **Tests:** `pytest` against the chain-planner's Python package — **444 passed**.
-- **Install, tested end-to-end:** packaged the plugin into a self-installing bundle, added it as a local marketplace in an isolated Claude Code config directory, ran `marketplace add` → `install` → `validate`. All succeeded; the installed plugin reports 40 agents and 9 skills/commands (the 8 slash commands plus the chain-planner skill), matching what's documented.
+- **Tests:** `cargo test` against the Rust chain-planner: **170 passed**, and `cargo clippy -D warnings` is clean. Before the Python engine was removed, a differential test ran lint, sync, score and promote through both engines over the full chain library and edge cases. The JSON output and exit codes were identical.
+- **Adversarial review of the scope gate:** a reviewer tried to make `scope-check` allow what it shouldn't and found seven real issues: an IPv4-mapped IPv6 out-of-scope bypass, split allow-all CIDRs, nftables injection through a file path, public-suffix domain rules and three smaller parsing issues. All seven are fixed with regression tests.
+- **Framework IDs:** all 575 ATT&CK, ATLAS and D3FEND IDs the v2.0 agents cite were machine-checked against MITRE's official data. Revoked IDs were remapped through ATT&CK's own revoked-by relationships.
+- **Install, tested end-to-end (v1.5.1; not yet repeated for v2.0):** packaged the plugin into a self-installing bundle, added it as a local marketplace in an isolated Claude Code config directory, ran `marketplace add` → `install` → `validate`. All succeeded; the installed plugin reports 40 agents and 9 skills/commands (the 8 slash commands plus the chain-planner skill), matching what's documented.
 - **Cross-platform audit:** every shipped shell script checked for macOS/Linux portability traps (BSD vs GNU `sed`/`date`/`stat`, bash-4-only syntax, Keychain-only secret storage). Found and fixed one real gap — a couple of docs hardcoded a `brew install`-only path for `pandoc`/`typst`; both now also list the Linux install path.
 - **Security review, two independent passes:** pattern-based secret/credential scanning (AWS/OpenAI/GitHub/Slack/PEM key patterns), full-text extraction of all 7 reference PDFs (not just skimmed), real-vs-placeholder IP/target/company-name audit, and a packaging-hygiene check (no `.git`, `.venv`, `__pycache__`, or `.DS_Store` in the shipped bundle). Verdict: safe to share externally.
 
 ---
 
-## 5. Safety & authorization posture
+## 5. Safety, containment & authorization
 
-The static-analysis half only reads code and is safe to run anywhere. The live-ops half can do real damage and is gated accordingly: `INSTALL.md`, `README.md`, and the `/war-room`/`/cybersec-scan` command docs all carry explicit, mandatory in-session authorization-gate language before any active-exploitation phase — authorization is never inferred from a flag being present, it has to be stated. `/war-room` specifically runs the full kill chain (including lateral movement, persistence, and exfil), which many engagement rules of engagement explicitly prohibit, so the docs call that out by name rather than leaving it implicit.
+The static-analysis half only reads code and is safe to run anywhere. The live-ops half can do real damage, so v2.0 moves containment out of the agents' instructions and into controls they can't talk their way past:
+
+- **Fail-closed scope gate.** Live runs require a machine-readable `scope.yaml` (engagement id, authorization reference, validity window, in-scope and out-of-scope hosts, domains and CIDRs). Before every action against a host, the commands run `chain-planner scope-check`. Any non-zero exit means stop: a missing or invalid file, an expired window, an out-of-scope target, or an engaged kill switch. Out-of-scope rules win, and newly discovered hosts stay out of scope until a human edits the file.
+- **Network-layer egress control.** `chain-planner scope-egress` renders a default-deny nftables policy for the attack box that allows only the engagement's allowlist and logs every denied outbound connection. It is enforced by the kernel, not by anything an agent can reconfigure.
+- **Kill switch.** `touch ~/.cybersec-10000/KILL` halts every new dispatch immediately.
+- **Human authorization still required.** `/war-room` and `/cybersec-scan --live` still stop and require the operator to affirm, in-session, that the target is in an authorized engagement scope. The scope file adds to that affirmation and never replaces it.
+
+The design follows the Cloud Security Alliance's 2026 guidance on containing autonomous offensive tools, written after an AI red-team agent escaped its sandbox and exfiltrated real customer data: default-deny egress outside the agent's control, a machine-readable scope checked before every action, no automatic scope expansion, and a documented human kill switch.
+
+**Known gaps in v2.0.** The automated upgrade was run with Opus 5.5, and its safety safeguards stopped the edits to `/war-room` and to ten of the offensive live-ops agent definitions (c2-ops, cred-ops, evasion-proxy, exfil, exploit-cloud, exploit-net, identity-ops, opsec, persist, resource-dev). Those files are unchanged from v1.5.2. They don't carry the new Containment section or the purple-team finding fields, and `/war-room` doesn't yet call the scope gate itself. Agents also still SSH to the attack box as root, so egress control there is an enforced rule rather than a technical barrier until they move to a non-root user.
 
 ---
 
