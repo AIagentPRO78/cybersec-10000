@@ -1,6 +1,6 @@
 # cybersec-10000 — a 40-agent security analysis swarm
 
-A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,243 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner written in Rust. Currently at **v2.0.0**, actively maintained. v2.0 adds a purple-team output (attack → countermeasure → detection), EPSS/KEV-aware scoring, a fail-closed containment model, and re-pins every framework to the 2025–26 editions.
+A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,253 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner written in Rust. Currently at **v2.1.0**, actively maintained. v2.0 adds a purple-team output (attack → countermeasure → detection), EPSS/KEV-aware scoring, a fail-closed containment model, and re-pins every framework to the 2025–26 editions. v2.1 adds a source-code review of eight open-source offensive AI agent frameworks and turns what it found into ten new audit checks.
 
 > **This repo is a public showcase, not the source.** The plugin source is private and shared on request — contact me on GitHub: [@AIagentPRO78](https://github.com/AIagentPRO78). See [Requesting access](#requesting-access).
 
@@ -8,11 +8,11 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 | | |
 |---|---|
-| Version | v2.0.0 |
+| Version | v2.1.0 |
 | Agents | 40 — 20 static analysis · 16 live operations · 4 specialist |
-| Dimensions | ~10,243 — 5,156 static · 3,087 live · 2,000 specialist |
-| Exploit chains | 46 named chains across 9 categories |
-| Capabilities | 133 reusable capability tags |
+| Dimensions | ~10,253 — 5,166 static · 3,087 live · 2,000 specialist |
+| Exploit chains | 47 named chains across 9 categories |
+| Capabilities | 136 reusable capability tags |
 | Frameworks mapped | 50+, pinned to verified 2025–26 editions (OWASP Top 10:2025 + Agentic/MCP/LLM, ATT&CK v20, ATLAS v2026.10, D3FEND 1.6.0, …) |
 | Tests | 170 passed (`cargo test`, Rust chain-planner) · differential test vs the v1.5.2 Python engine: identical output |
 | License | MIT — source shared on request |
@@ -23,9 +23,9 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 ![cybersec-10000 architecture](architecture.svg)
 
-Four slash commands (`/cybersec-scan`, `/chain-plan`, `/chain-run`, `/war-room`) feed a Rust `chain-planner` that scores 46 pre-built exploit chains against a target (`payout_prior × applicability × freshness_decay × exploitability`) and fans out to three agent tiers. Static-analysis agents are read-only and safe to run anywhere. Live-operations and specialist agents pass a fail-closed scope gate before every action and run only on a dedicated attack box (a Vultr VPS reached over WireGuard) whose outbound traffic is default-deny, never from the operator's own machine. Every finding, static or live, carries a purple-team mapping so a defender can act on it.
+Four slash commands (`/cybersec-scan`, `/chain-plan`, `/chain-run`, `/war-room`) feed a Rust `chain-planner` that scores 47 pre-built exploit chains against a target (`payout_prior × applicability × freshness_decay × exploitability`) and fans out to three agent tiers. Static-analysis agents are read-only and safe to run anywhere. Live-operations and specialist agents pass a fail-closed scope gate before every action and run only on a dedicated attack box (a Vultr VPS reached over WireGuard) whose outbound traffic is default-deny, never from the operator's own machine. Every finding, static or live, carries a purple-team mapping so a defender can act on it.
 
-### 1.1 Static analysis — 20 agents, 5,076 dimensions
+### 1.1 Static analysis — 20 agents, 5,166 dimensions
 
 Pre-game code, architecture, and compliance audit. Expanded roster (~2.5× more dimensions/agent than the plugin's predecessor, cybersec-2000):
 
@@ -104,15 +104,28 @@ Every dimension maps to a recognized framework, so findings are auditable and re
 | Methodology | OSSTMM 3, PTES, RE&CT |
 | OT / IoT | ATT&CK ICS v20, IEC 62443, ETSI EN 303 645 |
 
+### 1.5 What v2.1 adds: a source review of eight offensive AI agent frameworks
+
+I read the public source of ARTEX, CyberStrikeAI, PentAGI, AutoCVE, RedAmon, Cairn, Strix and HexStrike AI, each at a named commit, to see how they differ and where their controls live. Nothing was built or run.
+
+| Finding | Detail |
+|---|---|
+| No target allowlist by default | None of the eight enforces one. Six keep scope in the prompt or nowhere; two have code gates that are opt-in or partial |
+| Approval gates ship switched off | In four of the eight. One requires human approval before exploitation by default |
+| Network-reachable command execution | Two expose it with no authentication in their shipped deployment |
+| Orchestrators holding the Docker socket | Three, so a tool-execution flaw there is host control |
+
+What went into the plugin: a canon section recording each claim with its repo and commit, ten new static audit checks for agent frameworks and agent consoles (unauthenticated API, shell construction from model output, prompt-only scope, approval gates that are off or reviewed by a model, and six more), three capabilities and one chain that stops at proof of unauthenticated access, defender-facing fingerprints, and five design proposals for the war-room. The review is a snapshot; these projects change weekly.
+
 ---
 
 ## 2. The chain layer
 
-Chains are reusable multi-step exploit recipes stored as Markdown + YAML frontmatter, one file per chain. Each declares target tech, scope, expected steps (agent + capability tag), success criteria, and a payout prior (historical bounty $). 46 chains across 9 categories:
+Chains are reusable multi-step exploit recipes stored as Markdown + YAML frontmatter, one file per chain. Each declares target tech, scope, expected steps (agent + capability tag), success criteria, and a payout prior (historical bounty $). 47 chains across 9 categories:
 
 | Category | Examples |
 |---|---|
-| ai | langchain-agent-to-rce, soc-copilot-prompt-injection |
+| ai | langchain-agent-to-rce, soc-copilot-prompt-injection, exposed-agent-console-to-host-exec |
 | api | graphql-idor-via-aliases, mass-assignment-privesc, batch-idor, rate-limit-bypass-to-enum |
 | auth | oauth-open-redirect-token-theft, saml-assertion-replay, mfa-bypass-via-recovery, adcs-esc-escalation |
 | cloud | imdsv2-ssrf-bypass-2026, guardduty-noise-floor-blending, bedrock-agent-action-group-injection, s3-bucket-takeover |
@@ -122,7 +135,7 @@ Chains are reusable multi-step exploit recipes stored as Markdown + YAML frontma
 | ml | huggingface-model-trojan |
 | web | cors-wildcard-credentialed-ato, ssrf-to-iam-takeover, subdomain-takeover-to-cookie-scope, prototype-pollution-rce |
 
-133 capability tags (e.g. `cors-wildcard-credentialed`, `ssrf-basic-detection`, `supply-chain-dep-confusion`) are declared in agent frontmatter and reused inside chain steps, so a chain fires only the dimensions it actually needs instead of running a full agent. Scoring: `score = payout_prior_usd × applicability × freshness_decay × exploitability`. Applicability matches a chain's declared target tech and misconfig hints against the current target. Freshness_decay down-weights chains that haven't produced a paid finding recently. Exploitability (new in v2.0) is neutral (1.0) unless you supply CVE intel: then it is 1.5 for a CISA KEV-listed CVE, or `0.5 + EPSS` otherwise, so chains built on bugs being exploited in the wild rise to the top.
+136 capability tags (e.g. `cors-wildcard-credentialed`, `ssrf-basic-detection`, `supply-chain-dep-confusion`) are declared in agent frontmatter and reused inside chain steps, so a chain fires only the dimensions it actually needs instead of running a full agent. Scoring: `score = payout_prior_usd × applicability × freshness_decay × exploitability`. Applicability matches a chain's declared target tech and misconfig hints against the current target. Freshness_decay down-weights chains that haven't produced a paid finding recently. Exploitability (new in v2.0) is neutral (1.0) unless you supply CVE intel: then it is 1.5 for a CISA KEV-listed CVE, or `0.5 + EPSS` otherwise, so chains built on bugs being exploited in the wild rise to the top.
 
 Workflow: **plan** (`/chain-plan <target> --tech … --top 5` → ranked plan file) → **run** (`/chain-run <chain-id>`, manual go/no-go gate per step, evidence logged) → **promote** (`/chain-promote`, records a paid finding so that chain ranks higher in future plans) → **sync** (`/chain-sync`, lints the library, idempotent).
 
@@ -174,7 +187,7 @@ The design follows the Cloud Security Alliance's 2026 guidance on containing aut
 
 The sanitized build (no secrets, no real infra hostnames/IPs — everything live-mode is a placeholder) contains the plugin source from the private repo, plus an install guide and reference PDFs that are packaged with the build rather than kept in the source repo:
 
-- Full plugin source: 40 agent definitions, 8 slash commands, 46 exploit chains, the chain-planner scoring/dispatch skill, VPS attack-box management scripts.
+- Full plugin source: 40 agent definitions, 8 slash commands, 47 exploit chains, the chain-planner scoring/dispatch skill, VPS attack-box management scripts.
 - `INSTALL.md` — the tested install flow described in section 4.
 - `docs/` — 7 PDF references: an educational guide, a full per-agent dimension catalog (344 pages, generated by parsing the source so the counts can't silently drift from the code), a dimensions-and-execution code reference, the VPS attack-box setup guide (section 3 above, in full), a `/war-room` competition-orchestration guide, a related-project guide (125-agent-cube), and a README.
 
