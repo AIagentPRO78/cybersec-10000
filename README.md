@@ -14,7 +14,7 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 | Exploit chains | 47 named chains across 9 categories |
 | Capabilities | 136 reusable capability tags |
 | Frameworks mapped | 50+, pinned to verified 2025–26 editions (OWASP Top 10:2025 + Agentic/MCP/LLM, ATT&CK v20, ATLAS v2026.10, D3FEND 1.6.0, …) |
-| Tests | 196 passed (`cargo test`, Rust chain-planner) · differential test vs the v1.5.2 Python engine: identical output |
+| Tests | 198 passed (`cargo test`, Rust chain-planner) · differential test vs the v1.5.2 Python engine: identical output |
 | License | MIT — source shared on request |
 
 ---
@@ -131,7 +131,7 @@ The CSA CISO community's draft briefing on agentic offensive frameworks (v0.8, 2
 | Partial cleanup failed | Twelve readiness checks and an optional report section on complete remediation |
 | A fork shipped a backdoored container image | The attack-box audit flags images that are not pinned by digest |
 
-Two independent reviewers checked the release before it shipped. One tried to make the gate fail open with about 60 adversarial scope files and 925 comparisons against the previous build, and found no way. The other found that a parallel wave could exceed the new concurrency limit and that the watchdog was not counted; both were fixed.
+Two independent reviewers checked the release before it shipped. One tried to make the gate fail open with about 60 adversarial scope files and 925 comparisons against the previous build, and found no way. The other found that a parallel wave could exceed the new concurrency limit and that the watchdog was not counted; both were fixed. The new firewall rate-limit rule was then validated on nftables 1.1.6 in a Fedora CoreOS Podman machine, which showed it needed an explicit burst size; that is fixed too.
 
 ---
 
@@ -175,7 +175,7 @@ A 10-minute watchdog cron on the operator's machine auto-snapshots the VPS on a 
 
 Not just a design doc — verified end-to-end before publishing this showcase:
 
-- **Tests:** `cargo test` against the Rust chain-planner: **196 passed**, and `cargo clippy -D warnings` is clean. Before the Python engine was removed, a differential test ran lint, sync, score and promote through both engines over the full chain library and edge cases. The JSON output and exit codes were identical.
+- **Tests:** `cargo test` against the Rust chain-planner: **198 passed**, and `cargo clippy -D warnings` is clean. Before the Python engine was removed, a differential test ran lint, sync, score and promote through both engines over the full chain library and edge cases. The JSON output and exit codes were identical.
 - **Adversarial review of the scope gate:** a reviewer tried to make `scope-check` allow what it shouldn't and found seven real issues: an IPv4-mapped IPv6 out-of-scope bypass, split allow-all CIDRs, nftables injection through a file path, public-suffix domain rules and three smaller parsing issues. All seven are fixed with regression tests.
 - **Framework IDs:** all 575 ATT&CK, ATLAS and D3FEND IDs the v2.0 agents cite were machine-checked against MITRE's official data. Revoked IDs were remapped through ATT&CK's own revoked-by relationships.
 - **Install, tested end-to-end (v1.5.1; not yet repeated for v2.0):** packaged the plugin into a self-installing bundle, added it as a local marketplace in an isolated Claude Code config directory, ran `marketplace add` → `install` → `validate`. All succeeded; the installed plugin reports 40 agents and 9 skills/commands (the 8 slash commands plus the chain-planner skill), matching what's documented.
