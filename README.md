@@ -1,6 +1,6 @@
 # cybersec-10000 — a 40-agent security analysis swarm
 
-A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,253 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner written in Rust. Currently at **v2.1.0**, actively maintained. v2.0 adds a purple-team output (attack → countermeasure → detection), EPSS/KEV-aware scoring, a fail-closed containment model, and re-pins every framework to the 2025–26 editions. v2.1 adds a source-code review of eight open-source offensive AI agent frameworks and turns what it found into ten new audit checks.
+A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,281 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner written in Rust. Currently at **v2.2.0**, actively maintained. v2.0 adds a purple-team output (attack → countermeasure → detection), EPSS/KEV-aware scoring, a fail-closed containment model, and re-pins every framework to the 2025–26 editions. v2.1 adds a source-code review of eight open-source offensive AI agent frameworks and turns what it found into ten new audit checks. v2.2 applies the CSA CISO community's "Third Wave" briefing on agentic offensive frameworks: concurrency and rate limits and an OT rule enforced by the scope gate, an engagement record for the client's register of approved tests, and 28 new defensive checks.
 
 > **This repo is a public showcase, not the source.** The plugin source is private and shared on request — contact me on GitHub: [@AIagentPRO78](https://github.com/AIagentPRO78). See [Requesting access](#requesting-access).
 
@@ -8,13 +8,13 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 | | |
 |---|---|
-| Version | v2.1.0 |
+| Version | v2.2.0 |
 | Agents | 40 — 20 static analysis · 16 live operations · 4 specialist |
-| Dimensions | ~10,253 — 5,166 static · 3,087 live · 2,000 specialist |
+| Dimensions | ~10,281 — 5,184 static · 3,087 live · 2,010 specialist |
 | Exploit chains | 47 named chains across 9 categories |
 | Capabilities | 136 reusable capability tags |
 | Frameworks mapped | 50+, pinned to verified 2025–26 editions (OWASP Top 10:2025 + Agentic/MCP/LLM, ATT&CK v20, ATLAS v2026.10, D3FEND 1.6.0, …) |
-| Tests | 170 passed (`cargo test`, Rust chain-planner) · differential test vs the v1.5.2 Python engine: identical output |
+| Tests | 196 passed (`cargo test`, Rust chain-planner) · differential test vs the v1.5.2 Python engine: identical output |
 | License | MIT — source shared on request |
 
 ---
@@ -25,7 +25,7 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 Four slash commands (`/cybersec-scan`, `/chain-plan`, `/chain-run`, `/war-room`) feed a Rust `chain-planner` that scores 47 pre-built exploit chains against a target (`payout_prior × applicability × freshness_decay × exploitability`) and fans out to three agent tiers. Static-analysis agents are read-only and safe to run anywhere. Live-operations and specialist agents pass a fail-closed scope gate before every action and run only on a dedicated attack box (a Vultr VPS reached over WireGuard) whose outbound traffic is default-deny, never from the operator's own machine. Every finding, static or live, carries a purple-team mapping so a defender can act on it.
 
-### 1.1 Static analysis — 20 agents, 5,166 dimensions
+### 1.1 Static analysis — 20 agents, 5,184 dimensions
 
 Pre-game code, architecture, and compliance audit. Expanded roster (~2.5× more dimensions/agent than the plugin's predecessor, cybersec-2000):
 
@@ -75,7 +75,7 @@ Adapted from an earlier "AttackBox War Room" project, expanded. Agent 39 (`blue-
 | `blue-team-watchdog` | Polls GreyNoise/VT/WAF/Cloudflare/Fastly/CloudTrail; auto-pauses chains on detection |
 | `evasion-proxy` | JA4/HTTP-2/DoH fingerprint rotation; residential mesh; curl-impersonate; uTLS |
 
-### 1.3 Specialist — 4 agents, 2,000 dimensions
+### 1.3 Specialist — 4 agents, 2,010 dimensions
 
 | Agent | Focus |
 |---|---|
@@ -116,6 +116,22 @@ I read the public source of ARTEX, CyberStrikeAI, PentAGI, AutoCVE, RedAmon, Cai
 | Orchestrators holding the Docker socket | Three, so a tool-execution flaw there is host control |
 
 What went into the plugin: a canon section recording each claim with its repo and commit, ten new static audit checks for agent frameworks and agent consoles (unauthenticated API, shell construction from model output, prompt-only scope, approval gates that are off or reviewed by a model, and six more), three capabilities and one chain that stops at proof of unauthenticated access, defender-facing fingerprints, and five design proposals for the war-room. The review is a snapshot; these projects change weekly.
+
+### 1.6 What v2.2 adds: lessons from the CSA "Third Wave" briefing
+
+The CSA CISO community's draft briefing on agentic offensive frameworks (v0.8, 24 November 2026) reports what worked and what failed when organizations faced these tools. A plugin like this one is such a framework run under authorization, so the briefing's advice to testers applies to it directly.
+
+| Briefing lesson | What changed in the plugin |
+|---|---|
+| Bound automated actions with enforceable limits | The scope file can set a concurrency limit and a request rate. The gate denies a dispatch over the limit, and the attack box's firewall rules enforce the rate |
+| Test OT only against a range or a replica | A new `--ot` check allows OT actions only for targets the scope file declares as a range or replica |
+| Keep a register of approved tests | A new `engagement-record` command prints a record for the client's SOC. The tool never plants "this is authorized" markers on a target |
+| Detection tied to one tool goes stale | Tool-agnostic behavioural detections were added, and the v2.1 fingerprints are labelled as lagging indicators |
+| Deception slowed or stopped attackers | Ten checks for AI-aware deception: canary keys, decoy accounts, and content aimed at an attacking model |
+| Partial cleanup failed | Twelve readiness checks and an optional report section on complete remediation |
+| A fork shipped a backdoored container image | The attack-box audit flags images that are not pinned by digest |
+
+Two independent reviewers checked the release before it shipped. One tried to make the gate fail open with about 60 adversarial scope files and 925 comparisons against the previous build, and found no way. The other found that a parallel wave could exceed the new concurrency limit and that the watchdog was not counted; both were fixed.
 
 ---
 
@@ -159,7 +175,7 @@ A 10-minute watchdog cron on the operator's machine auto-snapshots the VPS on a 
 
 Not just a design doc — verified end-to-end before publishing this showcase:
 
-- **Tests:** `cargo test` against the Rust chain-planner: **170 passed**, and `cargo clippy -D warnings` is clean. Before the Python engine was removed, a differential test ran lint, sync, score and promote through both engines over the full chain library and edge cases. The JSON output and exit codes were identical.
+- **Tests:** `cargo test` against the Rust chain-planner: **196 passed**, and `cargo clippy -D warnings` is clean. Before the Python engine was removed, a differential test ran lint, sync, score and promote through both engines over the full chain library and edge cases. The JSON output and exit codes were identical.
 - **Adversarial review of the scope gate:** a reviewer tried to make `scope-check` allow what it shouldn't and found seven real issues: an IPv4-mapped IPv6 out-of-scope bypass, split allow-all CIDRs, nftables injection through a file path, public-suffix domain rules and three smaller parsing issues. All seven are fixed with regression tests.
 - **Framework IDs:** all 575 ATT&CK, ATLAS and D3FEND IDs the v2.0 agents cite were machine-checked against MITRE's official data. Revoked IDs were remapped through ATT&CK's own revoked-by relationships.
 - **Install, tested end-to-end (v1.5.1; not yet repeated for v2.0):** packaged the plugin into a self-installing bundle, added it as a local marketplace in an isolated Claude Code config directory, ran `marketplace add` → `install` → `validate`. All succeeded; the installed plugin reports 40 agents and 9 skills/commands (the 8 slash commands plus the chain-planner skill), matching what's documented.
@@ -174,6 +190,7 @@ The static-analysis half only reads code and is safe to run anywhere. The live-o
 
 - **Fail-closed scope gate.** Live runs require a machine-readable `scope.yaml` (engagement id, authorization reference, validity window, in-scope and out-of-scope hosts, domains and CIDRs). Before every action against a host, the commands run `chain-planner scope-check`. Any non-zero exit means stop: a missing or invalid file, an expired window, an out-of-scope target, or an engaged kill switch. Out-of-scope rules win, and newly discovered hosts stay out of scope until a human edits the file.
 - **Network-layer egress control.** `chain-planner scope-egress` renders a default-deny nftables policy for the attack box that allows only the engagement's allowlist and logs every denied outbound connection. It is enforced by the kernel, not by anything an agent can reconfigure.
+- **Limits and an OT rule in the gate (v2.2).** The scope file can cap concurrent agents and the outbound request rate, and can declare OT targets as a range or replica. The gate denies anything over the cap and any OT action against an undeclared target.
 - **Kill switch.** `touch ~/.cybersec-10000/KILL` halts every new dispatch immediately.
 - **Human authorization still required.** `/war-room` and `/cybersec-scan --live` still stop and require the operator to affirm, in-session, that the target is in an authorized engagement scope. The scope file adds to that affirmation and never replaces it.
 
