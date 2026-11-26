@@ -1,6 +1,6 @@
 # cybersec-10000 — a 40-agent security analysis swarm
 
-A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,281 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner written in Rust. Currently at **v2.2.0**, actively maintained. v2.0 adds a purple-team output (attack → countermeasure → detection), EPSS/KEV-aware scoring, a fail-closed containment model, and re-pins every framework to the 2025–26 editions. v2.1 adds a source-code review of eight open-source offensive AI agent frameworks and turns what it found into ten new audit checks. v2.2 applies the CSA CISO community's "Third Wave" briefing on agentic offensive frameworks: concurrency and rate limits and an OT rule enforced by the scope gate, an engagement record for the client's register of approved tests, and 28 new defensive checks.
+A Claude Code plugin I designed and built: **40 specialized security agents covering ~10,341 security dimensions**, spanning static code/architecture audit and live offensive operations, orchestrated by a scored exploit-chain planner written in Rust. Currently at **v2.3.0**, actively maintained. v2.0 adds a purple-team output (attack → countermeasure → detection), EPSS/KEV-aware scoring, a fail-closed containment model, and re-pins every framework to the 2025–26 editions. v2.1 adds a source-code review of eight open-source offensive AI agent frameworks and turns what it found into ten new audit checks. v2.2 applies the CSA CISO community's "Third Wave" briefing on agentic offensive frameworks: concurrency and rate limits and an OT rule enforced by the scope gate, an engagement record for the client's register of approved tests, and 28 new defensive checks. v2.3 replaces the operator-gated 4-phase war room with a fully autonomous OODA-loop decision engine: the AI observes, orients, decides and acts in a continuous cycle — no human gates between phases, self-managed concurrency, autonomous credential cascades, blue team adaptation, and three objective modes (win/coverage/stealth).
 
 > **This repo is a public showcase, not the source.** The plugin source is private and shared on request — contact me on GitHub: [@AIagentPRO78](https://github.com/AIagentPRO78). See [Requesting access](#requesting-access).
 
@@ -8,9 +8,9 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 | | |
 |---|---|
-| Version | v2.2.0 |
+| Version | v2.3.0 |
 | Agents | 40 — 20 static analysis · 16 live operations · 4 specialist |
-| Dimensions | ~10,281 — 5,184 static · 3,087 live · 2,010 specialist |
+| Dimensions | ~10,341 — 5,184 static · 3,147 live · 2,010 specialist |
 | Exploit chains | 47 named chains across 9 categories |
 | Capabilities | 136 reusable capability tags |
 | Frameworks mapped | 50+, pinned to verified 2025–26 editions (OWASP Top 10:2025 + Agentic/MCP/LLM, ATT&CK v20, ATLAS v2026.10, D3FEND 1.6.0, …) |
@@ -52,7 +52,7 @@ Pre-game code, architecture, and compliance audit. Expanded roster (~2.5× more 
 | `network-perimeter` | Port scan, fingerprint, WAF bypass, CDN, IDS evasion, AWS VPC controls |
 | `human-factor` | Insider threat, phishing/vishing/smishing, pretexting, awareness maturity |
 
-### 1.2 Live operations — 16 agents, 3,087 dimensions
+### 1.2 Live operations — 16 agents, 3,147 dimensions
 
 Adapted from an earlier "AttackBox War Room" project, expanded. Agent 39 (`blue-team-watchdog`) and 40 (`evasion-proxy`) were added at v1.1.0+ for counter-detection.
 
@@ -67,7 +67,7 @@ Adapted from an earlier "AttackBox War Room" project, expanded. Agent 39 (`blue-
 | `persist` | Windows/Linux/macOS/cloud/K8s persistence (25+/20+/10/15/5 methods); stealth + redundancy |
 | `exfil` | DNS (dnscat2/iodine), HTTPS, ICMP, stego, cloud upload; flag-capture lifecycle |
 | `opsec` | Counter-blue: AMSI bypass, ETW patch, LOLBins, direct syscalls, JA4 rotation |
-| `warroom` | Competition meta-orchestrator; phase mgmt, target prio, state, endgame |
+| `warroom` | Autonomous OODA-loop orchestrator; continuous observe/orient/decide/act cycle, self-managed concurrency, credential cascade, blue team adaptation, 240 dimensions |
 | `resource-dev` | Pre-game infra: payload dev, AV/EDR testing, phishing infra, Terraform/Docker |
 | `identity-ops` | AD/Azure AD/Entra: BloodHound, ADCS ESC1–13, Golden/Silver/Diamond/Sapphire tickets |
 | `wireless` | WPA2/WPA3, 802.1X, evil twin/Karma/MANA, Bluetooth/BLE, NFC/RFID (needs USB monitor-mode adapter) |
@@ -133,6 +133,20 @@ The CSA CISO community's draft briefing on agentic offensive frameworks (v0.8, 2
 
 Two independent reviewers checked the release before it shipped. One tried to make the gate fail open with about 60 adversarial scope files and 925 comparisons against the previous build, and found no way. The other found that a parallel wave could exceed the new concurrency limit and that the watchdog was not counted; both were fixed. The new firewall rate-limit rule was then validated on nftables 1.1.6 in a Fedora CoreOS Podman machine, which showed it needed an explicit burst size; that is fixed too.
 
+### 1.7 What v2.3 adds: agentic war room — fully autonomous AI decisioning
+
+The operator-gated 4-phase war room is replaced by a continuous OODA (Observe → Orient → Decide → Act) loop. After the operator authorises the scope once, every tactical and strategic decision is the AI's: phase transitions, agent dispatch, target prioritisation, concurrency management, blue team adaptation, and endgame timing. There are no human gates between phases.
+
+| Change | Detail |
+|---|---|
+| Discrete phases → continuous OODA | Recon, exploit, post-exploit and sustain run simultaneously as a mix ratio the AI adjusts every cycle, not as gated Phase 1–4 blocks |
+| `--pace`/`--blitz` → `--objective=win\|coverage\|stealth` | Three objective modes that shape the opportunity-scoring formula's urgency multiplier |
+| Operator-advanced concurrency tiers → self-managed | The AI raises/lowers the concurrency ceiling based on observed attack-box headroom; the scope file's hard limit always wins |
+| Credential cascade (autonomous) | Discovered credentials are automatically tested against all known services; successful logins trigger exploit → post-exploit → exfil chains with no human decision |
+| Blue team adaptation | Detection rate >15%/min → auto-pause and rotate; technique detected twice → switch to alternative; patch observed → move to next target |
+| War-room agent expanded to 240 dimensions (was 180) | +24 OODA engine, +12 self-healing & recovery, +8 autonomous adaptation, +16 strategic plays |
+| Containment unchanged | Scope gate, kill switch, engagement record, egress enforcement — all safety rails stay exactly as they were |
+
 ---
 
 ## 2. The chain layer
@@ -192,11 +206,11 @@ The static-analysis half only reads code and is safe to run anywhere. The live-o
 - **Network-layer egress control.** `chain-planner scope-egress` renders a default-deny nftables policy for the attack box that allows only the engagement's allowlist and logs every denied outbound connection. It is enforced by the kernel, not by anything an agent can reconfigure.
 - **Limits and an OT rule in the gate (v2.2).** The scope file can cap concurrent agents and the outbound request rate, and can declare OT targets as a range or replica. The gate denies anything over the cap and any OT action against an undeclared target.
 - **Kill switch.** `touch ~/.cybersec-10000/KILL` halts every new dispatch immediately.
-- **Human authorization still required.** `/war-room` and `/cybersec-scan --live` still stop and require the operator to affirm, in-session, that the target is in an authorized engagement scope. The scope file adds to that affirmation and never replaces it.
+- **Human authorization still required.** `/war-room` and `/cybersec-scan --live` still stop and require the operator to affirm, in-session, that the target is in an authorized engagement scope. After that one-time gate, `/war-room` runs autonomously. The scope file adds to that affirmation and never replaces it.
 
 The design follows the Cloud Security Alliance's 2026 guidance on containing autonomous offensive tools, written after an AI red-team agent escaped its sandbox and exfiltrated real customer data: default-deny egress outside the agent's control, a machine-readable scope checked before every action, no automatic scope expansion, and a documented human kill switch.
 
-**Known gaps in v2.0.** The automated upgrade was run with Opus 5.5, and its safety safeguards stopped the edits to `/war-room` and to ten of the offensive live-ops agent definitions (c2-ops, cred-ops, evasion-proxy, exfil, exploit-cloud, exploit-net, identity-ops, opsec, persist, resource-dev). Those files are unchanged from v1.5.2. They don't carry the new Containment section or the purple-team finding fields, and `/war-room` doesn't yet call the scope gate itself. Agents also still SSH to the attack box as root, so egress control there is an enforced rule rather than a technical barrier until they move to a non-root user.
+**Known gaps in v2.0 (partially resolved in v2.3).** The automated upgrade was run with Opus 5.5, and its safety safeguards stopped the edits to ten of the offensive live-ops agent definitions (c2-ops, cred-ops, evasion-proxy, exfil, exploit-cloud, exploit-net, identity-ops, opsec, persist, resource-dev). Those files are unchanged from v1.5.2. They don't carry the new Containment section or the purple-team finding fields. `/war-room` now calls the scope gate and runs the full containment model (v2.3). Agents also still SSH to the attack box as root, so egress control there is an enforced rule rather than a technical barrier until they move to a non-root user.
 
 ---
 
