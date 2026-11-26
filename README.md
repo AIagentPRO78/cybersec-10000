@@ -23,7 +23,7 @@ A Claude Code plugin I designed and built: **40 specialized security agents cove
 
 ![cybersec-10000 architecture](architecture.svg)
 
-Four slash commands (`/cybersec-scan`, `/chain-plan`, `/chain-run`, `/war-room`) feed a Rust `chain-planner` that scores 47 pre-built exploit chains against a target (`payout_prior × applicability × freshness_decay × exploitability`) and fans out to three agent tiers. Static-analysis agents are read-only and safe to run anywhere. Live-operations and specialist agents pass a fail-closed scope gate before every action and run only on a dedicated attack box (a Vultr VPS reached over WireGuard) whose outbound traffic is default-deny, never from the operator's own machine. Every finding, static or live, carries a purple-team mapping so a defender can act on it.
+Four slash commands (`/cybersec-scan`, `/chain-plan`, `/chain-run`, `/war-room`) feed a Rust `chain-planner` that scores 47 pre-built exploit chains against a target (`payout_prior × applicability × freshness_decay × exploitability`) and fans out to three agent tiers. Static-analysis agents are read-only and safe to run anywhere. Live-operations and specialist agents pass a fail-closed scope gate before every action and run only on a dedicated attack box (a Podman-isolated container host) whose outbound traffic is default-deny, never from the operator's own machine. Every finding, static or live, carries a purple-team mapping so a defender can act on it.
 
 ### 1.1 Static analysis — 20 agents, 5,184 dimensions
 
@@ -173,7 +173,7 @@ Workflow: **plan** (`/chain-plan <target> --tech … --top 5` → ranked plan fi
 
 ## 3. Attack-box tooling
 
-Live-ops agents never touch the network from the operator's machine — every active call goes through a dedicated VPS (Ubuntu 24.04, LXD-containerized by role: recon / web / net / cloud / c2) reached over WireGuard. The install guide documents the full tool inventory with install paths, e.g.:
+Live-ops agents never touch the network from the operator's machine — every active call goes through a dedicated attack box (Podman rootless containers by role: recon / web / net / cloud / c2) with nftables default-deny egress. The install guide documents the full tool inventory with install paths, e.g.:
 
 - **Recon/web hot-path** (`apt`/`go install`): nmap, masscan, sqlmap, nikto, hydra, john, hashcat, gobuster, ffuf, nuclei, dnsrecon, whatweb, wafw00f, chisel.
 - **AD/identity** (`pipx`/release binaries): Impacket, NetExec, Responder, Certipy, evil-winrm, BloodHound CE, Coercer, PetitPotam, kerbrute, ldapdomaindump.
